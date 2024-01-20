@@ -23,6 +23,17 @@ def findTransitions(inputArray, newTransitions):
     # print(newTransitions)
     return newTransitions
 
+'''
+getNewTransitions will take the new DFA inital state we caluclated 
+as well as the inputArray we parsed from the original NFA file.
+We will then utlize a series of conditions that will 
+1. Make the inital states with the proper input library
+2. Use the findTransitions function to find all transitions from the NFA
+   and create those new transitions to the new states.
+3. Use a while loop to parse each new state found and enter it into queue to 
+   find those state transitions utlizing the input library.
+4. Return the new array of all transitions with set() being an EMPTY state.
+'''
 def getNewTransitions(newInitial, inputArray):
     [states, inputLib, initalState, acceptStates, oldTransitions] = inputArray
     newTransitions = [] #state, inputAlphabet, transition
@@ -32,27 +43,39 @@ def getNewTransitions(newInitial, inputArray):
         # print(newTransitions)
     newTransitions = findTransitions(inputArray, newTransitions)
     finished = False
+    # print(newTransitions)
     while finished == False:
+        # print("I ran")
+        foundStates = []
         addTransitions = []
-        for i in range(0, len(newTransitions)):
-            for j in range(0, len(newTransitions)):
-                if newTransitions[i][2] == newTransitions[j][0]:
-                    continue
-                else:
-                    if newTransitions[i][2] not in addTransitions:
-                        addTransitions.append(newTransitions[i][2])
+        for state in newTransitions:
+            foundStates.append(state[0])
+        # print(foundStates)
+        for newStates in newTransitions:
+            if newStates[2] not in foundStates:
+                addTransitions.append(newStates[2])
         if len(addTransitions) > 0:
             for letter in inputLib:
                 newTransitions.append([addTransitions[0], letter, set()])
-            break #need to figure this out
-
+            # newTransitions = findTransitions(inputArray, newTransitions)
+            newTransitions = findTransitions(inputArray, newTransitions)
         else:
             finished = True
-    newTransitions = findTransitions(inputArray, newTransitions)
-    print(newTransitions)
+    for transition in newTransitions:
+        for i in range(0, len(transition)):
+            transition[i] = sorted(transition[i])
+    return newTransitions
 
-
-
+def findAcceptStates(originalInput, newTransitions):
+    acceptStates = originalInput[3]
+    acceptArray = []
+    for state in newTransitions:
+        for i in state[0]:
+            if i in acceptStates and state[0] not in acceptArray:
+                acceptArray.append(state[0])
+    for i in range(0,len(acceptArray)):
+        acceptArray[i] = sorted(acceptArray[i])
+    return acceptArray
 
 def readReturnInputInfo(file):
     reading = open(file, "r")
@@ -105,14 +128,21 @@ def readReturnInputInfo(file):
     return returnArr
 
 
+'''
+this function simply uses the EPS close function
+to epsilon close the initial state of the NFA to come up with out NFA initial.
+'''
 def determineInitialState(inputArray):
     [states, inputLib, initalState, acceptStates, transitions] = inputArray
     NFAbeginState = initalState[0]
     newInitialState = [NFAbeginState]
     newInitialState = epsClose(newInitialState, transitions)
-    return newInitialState
+    return set(sorted(newInitialState))
 
 
 inputArr = readReturnInputInfo("input.nfa")
 initialState = determineInitialState(inputArr)
-getNewTransitions(initialState, inputArr)
+DFATransisitons = getNewTransitions(initialState, inputArr)
+acceptStates = findAcceptStates(inputArr, DFATransisitons)
+
+print(DFATransisitons)
