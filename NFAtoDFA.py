@@ -140,9 +140,79 @@ def determineInitialState(inputArray):
     return set(sorted(newInitialState))
 
 
+
+def finalOutput(DFATransisitons, initialState, acceptStates, inputArr):
+    #open file
+    file = open("output.DFA", "w")
+
+    #write all reachable states.
+    file.write("{EM}\t")
+    reachableStates = []
+    for transition in DFATransisitons:
+        if transition[0] not in reachableStates:
+            reachableStates.append(transition[0])
+    for state in reachableStates:
+        str = ''
+        for ele in state:
+            str+=ele + ", "
+        if str != '':
+            file.write("{" + str[:-2] + "}\t")
+    file.write('\n')
+
+    #write input library
+    for ele in inputArr[1]:
+        file.write(ele + "\t")
+    file.write('\n')
+
+    #write initial state
+    initialState = sorted(list(initialState))
+    str = ''
+    for ele in initialState:
+        str+= ele + ", "
+    file.write("{" + str[:-2] + "}\t")
+    file.write("\n")
+
+    #write accept states
+    for state in acceptStates:
+        str = ''
+        for ele in state:
+            str+=ele + ", "
+        if str != '':
+            file.write("{" + str[:-2] + "}\t")
+    file.write('\n')
+
+    #Begin transition function
+    file.write("BEGIN\n")
+    for stateTransition in DFATransisitons:
+        state = '{'
+        if len(stateTransition[0]) == 0:
+            state += 'EM'
+        else:
+            for i in range(0, len(stateTransition[0])):
+                if i != len(stateTransition[0])-1:
+                    state += stateTransition[0][i] + ", "
+                else:
+                    state += stateTransition[0][i]
+        state += '}, '
+        state+= stateTransition[1][0] + " = {"
+        if len(stateTransition[2]) == 0:
+            state += 'EM'
+        else:
+            for i in range(0, len(stateTransition[2])):
+                if i != len(stateTransition[2])-1:
+                    state += stateTransition[2][i] + ", "
+                else:
+                    state += stateTransition[2][i]
+        state += '}'
+        file.write(state +"\n")
+    file.write("END")
+
+
+
+
+
 inputArr = readReturnInputInfo("input.nfa")
 initialState = determineInitialState(inputArr)
 DFATransisitons = getNewTransitions(initialState, inputArr)
 acceptStates = findAcceptStates(inputArr, DFATransisitons)
-
-print(DFATransisitons)
+finalOutput(DFATransisitons, initialState, acceptStates, inputArr)
