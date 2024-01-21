@@ -1,11 +1,22 @@
+
+
+'''
+EPSClose will act as an epsilon closing function that will be used for determining new initial states
+as well as used for all transitions after input is consumed to EPSClose for the transition
+'''
 def epsClose(stateArr, transitionArr):
     for state in stateArr:
         for transition in transitionArr:
             if transition[0] == state and transition[1] == 'EPS':
                 stateArr.append(transition[2])
     return stateArr
-
-
+'''
+findTransitions will take an input array and the parsed initial information
+and will find the corresponding transition for the provided input and input alphabet.
+If this new state has not been evaluated in the past transitions, it will
+add the state with each of the input alphabet inputs for further analysis to find 
+those state's transitions. Returns the inputted array with further states and transitions.
+'''
 def findTransitions(inputArray, newTransitions):
     [states, inputLib, initalState, acceptStates, oldTransitions] = inputArray
     count = 1
@@ -66,6 +77,12 @@ def getNewTransitions(newInitial, inputArray):
             transition[i] = sorted(transition[i])
     return newTransitions
 
+''''
+findAcceotStates will take the original inputs and the newly created transition
+functions for the new DFA and find all states that include the original accept state
+in the provided NFA, these will become our new DFA accept states and will be returned 
+as an array of sorted arrays with each element being a new accept state.
+'''
 def findAcceptStates(originalInput, newTransitions):
     acceptStates = originalInput[3]
     acceptArray = []
@@ -77,7 +94,13 @@ def findAcceptStates(originalInput, newTransitions):
         acceptArray[i] = sorted(acceptArray[i])
     return acceptArray
 
-def readReturnInputInfo(file):
+'''
+readReturnInputInfo takes in a file name, with the default being the prompted input.nfa.
+This function will read and sort all the input according to a prompt
+and include all important information in an array of arrays to access in later functions.
+This function basically parses, sorts and stores returning the array of arrays
+'''
+def readReturnInputInfo(file = "input.nfa"):
     reading = open(file, "r")
     allLines = reading.readlines()
     # print(allLines)
@@ -140,7 +163,12 @@ def determineInitialState(inputArray):
     return set(sorted(newInitialState))
 
 
-
+'''
+finalOutput is a way to complete the final output for the file we are exporting.
+This output contains a string that we constantly concat with the proper states and transitions
+States that are empty are replaced with an EM for the empty state.
+This output will then be written to the file output.DFA
+'''
 def finalOutput(DFATransisitons, initialState, acceptStates, inputArr):
     #open file
     file = open("output.DFA", "w")
@@ -207,12 +235,19 @@ def finalOutput(DFATransisitons, initialState, acceptStates, inputArr):
         file.write(state +"\n")
     file.write("END")
 
+'''
+Main will simply run the program, it will ask for an input file with the option to press ENTER instead.
+If you provide no input file, then it will default to input.nfa.
+'''
+def main():
+    file = input("Please enter the file name you would like to convert, or press ENTER for the default.\n")
+    if file == '':
+        inputArr = readReturnInputInfo()
+    else:
+        inputArr = readReturnInputInfo(file)
+    initialState = determineInitialState(inputArr)
+    DFATransisitons = getNewTransitions(initialState, inputArr)
+    acceptStates = findAcceptStates(inputArr, DFATransisitons)
+    finalOutput(DFATransisitons, initialState, acceptStates, inputArr)
 
-
-
-
-inputArr = readReturnInputInfo("input.nfa")
-initialState = determineInitialState(inputArr)
-DFATransisitons = getNewTransitions(initialState, inputArr)
-acceptStates = findAcceptStates(inputArr, DFATransisitons)
-finalOutput(DFATransisitons, initialState, acceptStates, inputArr)
+main()
